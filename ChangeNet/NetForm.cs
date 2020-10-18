@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Configuration;
 using System.Data;
 using System.Drawing;
 using System.Linq;
@@ -14,8 +15,8 @@ namespace ChangeNet
 {
     public partial class NetForm : Telerik.WinControls.UI.RadForm
     {
-        private const string Fast = "192.168.1.254";
-        private const string Normal = "192.168.1.1";
+        private  string Fast = ConfigurationManager.AppSettings["Fast"]?.ToString();//"192.168.1.254";
+        private  string Normal = ConfigurationManager.AppSettings["Normal"]?.ToString();//"192.168.1.1";
         public List<NetInfo> NetList { get; set; }
         public NetForm()
         {
