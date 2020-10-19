@@ -26,11 +26,11 @@ namespace ChangeNet
     }
     public enum NetSpeed
     {
-        [Description("هیچکدام")]
+        [Description("None")]
         None = 0,
-        [Description("پرسرعت")]
+        [Description("Wireless")]
         Fast = 1,
-        [Description("نرمال")]
+        [Description("ADSL")]
         Normal = 2
     }
 }
