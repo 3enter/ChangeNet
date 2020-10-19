@@ -4,19 +4,21 @@ using System.ComponentModel;
 using System.Configuration;
 using System.Data;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Management;
 using System.Net.NetworkInformation;
 using System.Text;
 using System.Windows.Forms;
 using Telerik.WinControls;
-
+using IWshRuntimeLibrary;
+using Shell32;
 namespace ChangeNet
 {
     public partial class NetForm : Telerik.WinControls.UI.RadForm
     {
-        private  string Fast = ConfigurationManager.AppSettings["Fast"]?.ToString();//"192.168.1.254";
-        private  string Normal = ConfigurationManager.AppSettings["Normal"]?.ToString();//"192.168.1.1";
+        private string Fast = ConfigurationManager.AppSettings["Fast"]?.ToString();//"192.168.1.254";
+        private string Normal = ConfigurationManager.AppSettings["Normal"]?.ToString();//"192.168.1.1";
         public List<NetInfo> NetList { get; set; }
         public NetForm()
         {
@@ -140,7 +142,7 @@ namespace ChangeNet
                 Getway = s?.GetIPProperties().GatewayAddresses?.FirstOrDefault()?.Address?.ToString(),
                 DHCP = s?.GetIPProperties()?.GetIPv4Properties()?.IsDhcpEnabled,
             }).ToList();
-            NetList.ForEach(x => { var c = vv.Where(s => s.ID == x.ID)?.FirstOrDefault(); x.Getway=c.Getway; x.IP = c.IP; x.DHCP = c.DHCP; x.Name = c.Name; x.Speed = c.Getway == Fast ? NetSpeed.Fast : c.Getway == Normal ? NetSpeed.Normal : NetSpeed.None; });
+            NetList.ForEach(x => { var c = vv.Where(s => s.ID == x.ID)?.FirstOrDefault(); x.Getway = c.Getway; x.IP = c.IP; x.DHCP = c.DHCP; x.Name = c.Name; x.Speed = c.Getway == Fast ? NetSpeed.Fast : c.Getway == Normal ? NetSpeed.Normal : NetSpeed.None; });
             radGridView1.DataSource = null;
             radGridView1.DataSource = NetList;
             GridInit();
@@ -151,12 +153,12 @@ namespace ChangeNet
             radGridView1.Columns["ID"].IsVisible = false;
             radGridView1.Columns["Status"].IsVisible = false;
             radGridView1.Columns["Name"].ReadOnly = true;
-            
+
             radGridView1.AutoSizeColumnsMode = Telerik.WinControls.UI.GridViewAutoSizeColumnsMode.Fill;
         }
         private void NetForm_Load(object sender, EventArgs e)
         {
-            NetList = NetworkInterface.GetAllNetworkInterfaces().Where(s => !s.Description.Contains("Virtual") && s.NetworkInterfaceType != NetworkInterfaceType.Loopback).Select(s => new NetInfo
+            NetList = NetworkInterface.GetAllNetworkInterfaces().Where(s => !s.Description.Contains("Virtual") && s.NetworkInterfaceType != NetworkInterfaceType.Loopback && s.NetworkInterfaceType != NetworkInterfaceType.Ppp).Select(s => new NetInfo
             {
                 ID = s.Id,
                 Name = s.Name,
@@ -168,7 +170,7 @@ namespace ChangeNet
             NetList.ForEach(x => x.Speed = x.Getway == Fast ? NetSpeed.Fast : x.Getway == Normal ? NetSpeed.Normal : NetSpeed.None);
             radGridView1.DataSource = NetList;
             GridInit();
-
+            CreateStartupFolderShortcut();
         }
 
         private void radGridView1_CellEndEdit(object sender, Telerik.WinControls.UI.GridViewCellEventArgs e)
@@ -207,6 +209,40 @@ namespace ChangeNet
                 e.RowElement.Enabled = false;
             else
                 e.RowElement.Enabled = true;
+        }
+
+        private void NetForm_Resize(object sender, EventArgs e)
+        {
+            if (WindowState == FormWindowState.Minimized)
+            {
+                this.Hide();
+            }
+        }
+
+        private void notifyIcon1_Click(object sender, EventArgs e)
+        {
+            this.Show();
+            this.WindowState = FormWindowState.Normal;
+        }
+
+        public void CreateStartupFolderShortcut()
+        {
+            WshShellClass wshShell = new WshShellClass();
+            IWshRuntimeLibrary.IWshShortcut shortcut;
+            string startUpFolderPath =
+              Environment.GetFolderPath(Environment.SpecialFolder.Startup);
+
+            // Create the shortcut
+            shortcut =
+              (IWshRuntimeLibrary.IWshShortcut)wshShell.CreateShortcut(
+                startUpFolderPath + "\\" +
+                Application.ProductName + ".lnk");
+
+            shortcut.TargetPath = Application.ExecutablePath;
+            shortcut.WorkingDirectory = Application.StartupPath;
+            shortcut.Description = "Launch My Application";
+            // shortcut.IconLocation = Application.StartupPath + @"\App.ico";
+            shortcut.Save();
         }
     }
 
