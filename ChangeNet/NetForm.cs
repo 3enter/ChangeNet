@@ -219,12 +219,6 @@ namespace ChangeNet
             }
         }
 
-        private void notifyIcon1_Click(object sender, EventArgs e)
-        {
-            this.Show();
-            this.WindowState = FormWindowState.Normal;
-        }
-
         public void CreateStartupFolderShortcut()
         {
             WshShellClass wshShell = new WshShellClass();
@@ -243,6 +237,28 @@ namespace ChangeNet
             shortcut.Description = "Launch My Application";
             // shortcut.IconLocation = Application.StartupPath + @"\App.ico";
             shortcut.Save();
+        }
+
+        private void NetForm_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            if (e.CloseReason== CloseReason.UserClosing)      
+            {
+                e.Cancel = true;
+                this.Hide();
+            }
+
+
+        }
+
+        private void closeToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Application.Exit();
+        }
+
+        private void showToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            this.Show();
+            this.WindowState = FormWindowState.Normal;
         }
     }
 
