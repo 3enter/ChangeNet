@@ -19,6 +19,8 @@ namespace ChangeNet
     {
         private string Fast = ConfigurationManager.AppSettings["Fast"]?.ToString();//"192.168.1.254";
         private string Normal = ConfigurationManager.AppSettings["Normal"]?.ToString();//"192.168.1.1";
+        private System.Windows.Forms.Timer tmr;
+
         public List<NetInfo> NetList { get; set; }
         public NetForm()
         {
@@ -171,6 +173,26 @@ namespace ChangeNet
             radGridView1.DataSource = NetList;
             GridInit();
             CreateStartupFolderShortcut();
+
+            tmr = new System.Windows.Forms.Timer();
+            tmr.Tick += Tmr_Tick;
+            tmr.Interval = (int)TimeSpan.FromMinutes(1).TotalMilliseconds;
+            tmr.Start();
+        }
+
+        private void Tmr_Tick(object sender, EventArgs e)
+        {
+            if (NetList.Any(s => s.Speed == NetSpeed.Fast))
+                if (MessageBox.Show("your a long time Connected with Wireless,are u Want connect with ADSL?", "ADSL", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                {
+                    foreach (var x in NetList)
+                    {
+                        setGateway(Normal, x.ID);
+                    }
+                    Referesh();
+                }
+            tmr.Interval = (int)TimeSpan.FromMinutes(1).TotalMilliseconds;
+            tmr.Start();
         }
 
         private void radGridView1_CellEndEdit(object sender, Telerik.WinControls.UI.GridViewCellEventArgs e)
@@ -241,7 +263,7 @@ namespace ChangeNet
 
         private void NetForm_FormClosing(object sender, FormClosingEventArgs e)
         {
-            if (e.CloseReason== CloseReason.UserClosing)      
+            if (e.CloseReason == CloseReason.UserClosing)
             {
                 e.Cancel = true;
                 this.Hide();
