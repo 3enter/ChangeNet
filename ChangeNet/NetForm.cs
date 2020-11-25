@@ -140,8 +140,8 @@ namespace ChangeNet
             {
                 ID = s.Id,
                 Name = s.Name,
-                IP = s?.GetIPProperties()?.UnicastAddresses?.Where(v => v.SuffixOrigin == SuffixOrigin.OriginDhcp || v.SuffixOrigin == SuffixOrigin.Manual)?.FirstOrDefault()?.Address?.ToString(),
-                Getway = s?.GetIPProperties().GatewayAddresses?.FirstOrDefault()?.Address?.ToString(),
+                IP = s?.GetIPProperties()?.UnicastAddresses?.Where(v => v.SuffixOrigin == SuffixOrigin.OriginDhcp || v.SuffixOrigin == SuffixOrigin.Manual)?.FirstOrDefault()?.Address?.MapToIPv4()?.ToString(),
+                Getway = s?.GetIPProperties().GatewayAddresses?.FirstOrDefault()?.Address?.MapToIPv4()?.ToString(),
                 DHCP = s?.GetIPProperties()?.GetIPv4Properties()?.IsDhcpEnabled,
             }).ToList();
             NetList.ForEach(x => { var c = vv.Where(s => s.ID == x.ID)?.FirstOrDefault(); x.Getway = c.Getway; x.IP = c.IP; x.DHCP = c.DHCP; x.Name = c.Name; x.Speed = c.Getway == Fast ? NetSpeed.Fast : c.Getway == Normal ? NetSpeed.Normal : NetSpeed.None; });
@@ -164,8 +164,8 @@ namespace ChangeNet
             {
                 ID = s.Id,
                 Name = s.Name,
-                IP = s?.GetIPProperties()?.UnicastAddresses?.Where(v => v.SuffixOrigin == SuffixOrigin.OriginDhcp || v.SuffixOrigin == SuffixOrigin.Manual)?.FirstOrDefault()?.Address?.ToString(),
-                Getway = s?.GetIPProperties().GatewayAddresses?.FirstOrDefault()?.Address?.ToString(),
+                IP = s?.GetIPProperties()?.UnicastAddresses?.Where(v => v.SuffixOrigin == SuffixOrigin.OriginDhcp || v.SuffixOrigin == SuffixOrigin.Manual)?.FirstOrDefault()?.Address?.MapToIPv4()?.ToString(),
+                Getway = s?.GetIPProperties().GatewayAddresses?.FirstOrDefault()?.Address?.MapToIPv4()?.ToString(),
                 DHCP = s?.GetIPProperties()?.GetIPv4Properties()?.IsDhcpEnabled,
                 Status = s.OperationalStatus,
             }).ToList();
@@ -191,7 +191,7 @@ namespace ChangeNet
                     }
                     Referesh();
                 }
-            tmr.Interval = (int)TimeSpan.FromMinutes(1).TotalMilliseconds;
+            tmr.Interval = (int)TimeSpan.FromMinutes(60).TotalMilliseconds;
             tmr.Start();
         }
 
