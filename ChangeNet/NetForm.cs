@@ -141,7 +141,7 @@ namespace ChangeNet
                 ID = s.Id,
                 Name = s.Name,
                 IP = s?.GetIPProperties()?.UnicastAddresses?.Where(v => v.SuffixOrigin == SuffixOrigin.OriginDhcp || v.SuffixOrigin == SuffixOrigin.Manual)?.FirstOrDefault()?.Address?.MapToIPv4()?.ToString(),
-                Getway = s?.GetIPProperties().GatewayAddresses?.FirstOrDefault()?.Address?.MapToIPv4()?.ToString(),
+                Getway = s?.GetIPProperties().GatewayAddresses?.Where(v => v.Address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork).FirstOrDefault()?.Address?.MapToIPv4()?.ToString(),
                 DHCP = s?.GetIPProperties()?.GetIPv4Properties()?.IsDhcpEnabled,
             }).ToList();
             NetList.ForEach(x => { var c = vv.Where(s => s.ID == x.ID)?.FirstOrDefault(); x.Getway = c.Getway; x.IP = c.IP; x.DHCP = c.DHCP; x.Name = c.Name; x.Speed = c.Getway == Fast ? NetSpeed.Fast : c.Getway == Normal ? NetSpeed.Normal : NetSpeed.None; });
@@ -165,34 +165,40 @@ namespace ChangeNet
                 ID = s.Id,
                 Name = s.Name,
                 IP = s?.GetIPProperties()?.UnicastAddresses?.Where(v => v.SuffixOrigin == SuffixOrigin.OriginDhcp || v.SuffixOrigin == SuffixOrigin.Manual)?.FirstOrDefault()?.Address?.MapToIPv4()?.ToString(),
-                Getway = s?.GetIPProperties().GatewayAddresses?.FirstOrDefault()?.Address?.MapToIPv4()?.ToString(),
+                Getway = s?.GetIPProperties().GatewayAddresses?.Where(v => v.Address.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork).FirstOrDefault()?.Address?.MapToIPv4()?.ToString(),
                 DHCP = s?.GetIPProperties()?.GetIPv4Properties()?.IsDhcpEnabled,
                 Status = s.OperationalStatus,
             }).ToList();
             NetList.ForEach(x => x.Speed = x.Getway == Fast ? NetSpeed.Fast : x.Getway == Normal ? NetSpeed.Normal : NetSpeed.None);
             radGridView1.DataSource = NetList;
             GridInit();
-            CreateStartupFolderShortcut();
-
+           // CreateStartupFolderShortcut();
             tmr = new System.Windows.Forms.Timer();
             tmr.Tick += Tmr_Tick;
-            tmr.Interval = (int)TimeSpan.FromMinutes(1).TotalMilliseconds;
-            tmr.Start();
+            Tmr_Tick(null, null);
+            //tmr.Interval = (int)TimeSpan.FromMinutes(1).TotalMilliseconds;
+            //tmr.Start();
         }
 
         private void Tmr_Tick(object sender, EventArgs e)
         {
+            tmr.Stop();
             if (NetList.Any(s => s.Speed == NetSpeed.Fast))
-                if (MessageBox.Show("your a long time Connected with Wireless,are u Want connect with ADSL?", "ADSL", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+            {
+                var Res = MessageBox.Show("your a long time Connected with Wireless,are u Want connect with ADSL?", "ADSL", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                if (Res== DialogResult.Yes)
                 {
                     foreach (var x in NetList)
                     {
                         setGateway(Normal, x.ID);
                     }
                     Referesh();
+
                 }
+            }
             tmr.Interval = (int)TimeSpan.FromMinutes(60).TotalMilliseconds;
             tmr.Start();
+
         }
 
         private void radGridView1_CellEndEdit(object sender, Telerik.WinControls.UI.GridViewCellEventArgs e)
